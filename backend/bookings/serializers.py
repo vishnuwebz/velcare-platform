@@ -66,3 +66,6 @@ class BookingSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         read_only_fields = ("id", "order_id", "status", "created_at")
+        extra_kwargs = {
+            "scheduled_at": {"required": True, "allow_null": False},
+        }
