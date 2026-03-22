@@ -1,4 +1,7 @@
 import Navbar from "../components/Navbar";
+import Hero from "../components/home/Hero";
+import ServicesStrip from "../components/home/ServicesStrip";
+import Categories from "../components/home/Categories";
 
 export default function Home() {
   return (
@@ -6,22 +9,9 @@ export default function Home() {
       <Navbar />
 
       <div className="page active">
-        <div className="hero">
-          <div className="hero-content container">
-            <h1 className="hero-headline">
-              PREMIUM <span className="accent">CAR CARE</span>
-            </h1>
-
-            <p className="hero-sub">
-              Professional car detailing & maintenance at your doorstep.
-            </p>
-
-            <div className="hero-actions">
-              <button className="btn btn-primary">Book Now</button>
-              <button className="btn btn-secondary">Explore Services</button>
-            </div>
-          </div>
-        </div>
+        <Hero />
+        <ServicesStrip />
+        <Categories />
       </div>
     </>
   );
