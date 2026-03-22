@@ -11,6 +11,10 @@ from bookings.views import VehicleViewSet, BookingViewSet
 from users.views import SignupView, LoginView, MeView
 from reviews.views import ReviewViewSet
 
+
+# =========================
+# ROUTER (MAIN APIs)
+# =========================
 router = DefaultRouter()
 router.register(r"service-categories", ServiceCategoryViewSet, basename="service-category")
 router.register(r"services", ServiceViewSet, basename="service")
@@ -19,12 +23,25 @@ router.register(r"vehicles", VehicleViewSet, basename="vehicle")
 router.register(r"bookings", BookingViewSet, basename="booking")
 router.register(r"reviews", ReviewViewSet, basename="review")
 
+
+# =========================
+# URL PATTERNS
+# =========================
 urlpatterns = [
+    # Admin
     path("admin/", admin.site.urls),
+
+    # 🔥 Main API routes (ViewSets)
     path("api/", include(router.urls)),
-    path("api/bookings/", include("bookings.urls")),
-    path("api/me/", MeView.as_view(), name="me"),
-    path("api/login/", LoginView.as_view(), name="login"),
+
+    # 🔥 Custom APIs (NO CONFLICT NOW)
+    path("api/", include("bookings.urls")),   # → /api/simple-booking/
+
+    # Auth APIs
     path("api/signup/", SignupView.as_view(), name="signup"),
+    path("api/login/", LoginView.as_view(), name="login"),
+    path("api/me/", MeView.as_view(), name="me"),
+
+    # DRF Login (optional)
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 ]

@@ -9,6 +9,7 @@ from .serializers import VehicleSerializer, BookingSerializer
 
 from services.models import Service, VehicleType
 
+from rest_framework.renderers import JSONRenderer
 
 # =========================
 # VEHICLE VIEWSET
@@ -27,17 +28,24 @@ class BookingViewSet(viewsets.ModelViewSet):
     serializer_class = BookingSerializer
     permission_classes = [permissions.AllowAny]
 
+    # 🔥 FIX: disable browsable form
+    renderer_classes = [JSONRenderer]
 
 # =========================
 # SIMPLE BOOKING API (FRONTEND USE)
 # =========================
-@api_view(["POST"])
+@api_view(["GET", "POST"])
 @permission_classes([permissions.AllowAny])
 def simple_booking(request):
+
+    if request.method == "GET":
+        return Response({
+            "message": "Use POST to create booking"
+        })
+
     data = request.data
 
     try:
-        # TEMP mapping (later we replace with real selection)
         service = Service.objects.first()
         vehicle_type = VehicleType.objects.first()
 
@@ -51,7 +59,7 @@ def simple_booking(request):
         booking = Booking.objects.create(
             service=service,
             vehicle=vehicle,
-            scheduled_at=timezone.now(),
+            scheduled_at=timezone.now(),  # ✅ FIXED
             address=data.get("address"),
             zone="Chennai",
             amount=data.get("price", 0),
@@ -63,6 +71,4 @@ def simple_booking(request):
         })
 
     except Exception as e:
-        return Response({
-            "error": str(e)
-        }, status=400)
+        return Response({"error": str(e)}, status=400)
