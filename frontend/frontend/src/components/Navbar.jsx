@@ -1,42 +1,78 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 export default function Navbar() {
   const navigate = useNavigate();
 
+  const [user, setUser] = useState(null);
+
+  // 🔥 Load user from localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  // 🔥 Logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    setUser(null);
+
+    navigate("/login");
+  };
+
   return (
-    <div className="navbar">
-      <div className="nav-logo" onClick={() => navigate("/")}>
-        <div className="nav-logo-icon">V</div>
-        VELO<span>CARE</span>
-      </div>
+    <header className="header">
+      <div className="container nav">
 
-      <div className="nav-links">
-        <button className="nav-link" onClick={() => navigate("/")}>
-          Home
-        </button>
-        <button className="nav-link" onClick={() => navigate("/services")}>
-          Services
-        </button>
-        <button className="nav-link" onClick={() => navigate("/booking")}>
-          Booking
-        </button>
-      </div>
+        {/* LOGO */}
+        <Link to="/" className="logo">
+          VELO<span>CARE</span>
+        </Link>
 
-      <div className="nav-actions">
-        <button
-          className="btn-nav-login"
-          onClick={() => navigate("/login")}
-        >
-          Login
-        </button>
+        {/* NAV LINKS */}
+        <nav className="nav-links">
+          <Link to="/">Home</Link>
+          <Link to="/services">Services</Link>
 
-        <button
-          className="btn-nav-cta"
-          onClick={() => navigate("/booking")}
-        >
-          Book Now
-        </button>
+          {user && <Link to="/booking">Booking</Link>}
+        </nav>
+
+        {/* AUTH BUTTONS */}
+        <div className="nav-actions">
+
+          {!user ? (
+            <>
+              <Link to="/login" className="btn btn-secondary">
+                Login
+              </Link>
+
+              <Link to="/signup" className="btn btn-primary">
+                Signup
+              </Link>
+            </>
+          ) : (
+            <>
+              <span className="nav-user">
+                Hi, {user.username}
+              </span>
+
+              <button
+                className="btn btn-secondary"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </>
+          )}
+
+        </div>
+
       </div>
-    </div>
+    </header>
   );
 }
