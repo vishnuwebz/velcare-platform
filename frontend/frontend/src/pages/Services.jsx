@@ -8,26 +8,42 @@ export default function Services() {
   const [selected, setSelected] = useState("All");
   const [services, setServices] = useState([]);
 
-  // 🔥 FETCH FROM BACKEND
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // 🔥 Fetch Services
   useEffect(() => {
     fetchServices();
   }, []);
 
   const fetchServices = async () => {
     try {
+      setLoading(true);
+
       const res = await API.get("services/");
       setServices(res.data);
-    } catch (error) {
-      console.error(error);
+
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load services ❌");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const categories = [...new Set(services.map(s => s.category.name))];
+  // 🔥 Categories
+  const categories = [
+    ...new Set(services.map((s) => s.category?.name)),
+  ];
 
+  // 🔥 Filter Logic
   const filtered =
     selected === "All"
       ? services
-      : services.filter(s => s.category.name === selected);
+      : services.filter(
+          (s) => s.category?.name === selected
+        );
 
   return (
     <>
@@ -47,11 +63,40 @@ export default function Services() {
         </div>
 
         <div className="services-grid-section container">
-          <div className="grid-3">
-            {filtered.map((service) => (
-              <ServiceCard key={service.id} service={service} />
-            ))}
-          </div>
+
+          {/* 🔄 LOADING */}
+          {loading && (
+            <div className="center-text">
+              <p>Loading services...</p>
+            </div>
+          )}
+
+          {/* ❌ ERROR */}
+          {error && (
+            <div className="center-text">
+              <p>{error}</p>
+            </div>
+          )}
+
+          {/* ⚠️ EMPTY */}
+          {!loading && !error && filtered.length === 0 && (
+            <div className="center-text">
+              <p>No services available</p>
+            </div>
+          )}
+
+          {/* ✅ DATA */}
+          {!loading && !error && filtered.length > 0 && (
+            <div className="grid-3">
+              {filtered.map((service) => (
+                <ServiceCard
+                  key={service.id}
+                  service={service}
+                />
+              ))}
+            </div>
+          )}
+
         </div>
       </div>
     </>
