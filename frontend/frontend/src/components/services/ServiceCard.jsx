@@ -7,19 +7,23 @@ export default function ServiceCard({ service }) {
 
       <div className="package-card-body">
         <div className="package-name">{service.name}</div>
-        <div className="package-category">{service.category}</div>
+        <div className="package-category">
+          {service.category.name}
+        </div>
 
-        <ul className="package-features">
-          {service.features.map((f, i) => (
-            <li key={i}>{f}</li>
-          ))}
-        </ul>
+        <div className="package-features">
+          {service.description}
+        </div>
       </div>
 
       <div className="package-footer">
         <div>
-          <div className="package-price">₹{service.price}</div>
-          <div className="package-price-note">Starting price</div>
+          <div className="package-price">
+            ₹{service.base_price}
+          </div>
+          <div className="package-price-note">
+            Duration: {service.duration_minutes} mins
+          </div>
         </div>
 
         <button className="btn btn-primary btn-sm">

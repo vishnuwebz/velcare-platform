@@ -1,44 +1,33 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import ServiceCard from "../components/services/ServiceCard";
 import FilterBar from "../components/services/FilterBar";
+import API from "../api/api";
 
 export default function Services() {
   const [selected, setSelected] = useState("All");
+  const [services, setServices] = useState([]);
 
-  const services = [
-    {
-      name: "Basic Wash",
-      category: "Wash",
-      price: 499,
-      features: ["Exterior wash", "Quick dry"]
-    },
-    {
-      name: "Interior Cleaning",
-      category: "Cleaning",
-      price: 999,
-      features: ["Vacuum", "Dashboard polish"]
-    },
-    {
-      name: "Full Detailing",
-      category: "Detailing",
-      price: 1999,
-      features: ["Interior + Exterior", "Wax polish"]
-    },
-    {
-      name: "Ceramic Coating",
-      category: "Protection",
-      price: 4999,
-      features: ["Paint protection", "Gloss finish"]
+  // 🔥 FETCH FROM BACKEND
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      const res = await API.get("services/");
+      setServices(res.data);
+    } catch (error) {
+      console.error(error);
     }
-  ];
+  };
 
-  const categories = [...new Set(services.map(s => s.category))];
+  const categories = [...new Set(services.map(s => s.category.name))];
 
   const filtered =
     selected === "All"
       ? services
-      : services.filter(s => s.category === selected);
+      : services.filter(s => s.category.name === selected);
 
   return (
     <>
@@ -59,8 +48,8 @@ export default function Services() {
 
         <div className="services-grid-section container">
           <div className="grid-3">
-            {filtered.map((service, i) => (
-              <ServiceCard key={i} service={service} />
+            {filtered.map((service) => (
+              <ServiceCard key={service.id} service={service} />
             ))}
           </div>
         </div>
