@@ -1,34 +1,22 @@
 from django.contrib import admin
-
 from .models import ServiceCategory, Service, VehicleType
 
 
 @admin.register(ServiceCategory)
 class ServiceCategoryAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug")
-    search_fields = ("name", "slug")
+    list_display = ("name", "slug", "is_active")
     prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = (
-        "name",
-        "code",
-        "category",
-        "base_price",
-        "duration_minutes",
-        "is_popular",
-        "is_seasonal",
-    )
-    list_filter = ("category", "is_popular", "is_seasonal")
-    search_fields = ("name", "code", "category__name")
-    list_editable = ("base_price", "duration_minutes", "is_popular", "is_seasonal")
-    ordering = ("category", "name")
+    list_display = ("name", "category", "base_price", "is_popular", "is_active")
+    list_filter = ("category", "is_popular", "is_active")
+    search_fields = ("name", "code")
+    list_editable = ("base_price", "is_popular", "is_active")
 
 
 @admin.register(VehicleType)
 class VehicleTypeAdmin(admin.ModelAdmin):
     list_display = ("name", "slug")
-    search_fields = ("name", "slug")
     prepopulated_fields = {"slug": ("name",)}
