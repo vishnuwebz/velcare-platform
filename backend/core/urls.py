@@ -9,6 +9,7 @@ from services.views import (
 )
 from bookings.views import VehicleViewSet, BookingViewSet
 from users.views import SignupView, LoginView, MeView
+from reviews.views import ReviewViewSet
 
 router = DefaultRouter()
 router.register(r"service-categories", ServiceCategoryViewSet, basename="service-category")
@@ -16,6 +17,7 @@ router.register(r"services", ServiceViewSet, basename="service")
 router.register(r"vehicle-types", VehicleTypeViewSet, basename="vehicle-type")
 router.register(r"vehicles", VehicleViewSet, basename="vehicle")
 router.register(r"bookings", BookingViewSet, basename="booking")
+router.register(r"reviews", ReviewViewSet, basename="review")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
