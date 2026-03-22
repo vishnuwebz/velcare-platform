@@ -8,7 +8,7 @@ from services.views import (
     VehicleTypeViewSet,
 )
 from bookings.views import VehicleViewSet, BookingViewSet
-from users.views import MeView, SignupView
+from users.views import SignupView, LoginView, MeView
 
 router = DefaultRouter()
 router.register(r"service-categories", ServiceCategoryViewSet, basename="service-category")
@@ -22,6 +22,7 @@ urlpatterns = [
     path("api/", include(router.urls)),
     path("api/bookings/", include("bookings.urls")),
     path("api/me/", MeView.as_view(), name="me"),
+    path("api/login/", LoginView.as_view(), name="login"),
     path("api/signup/", SignupView.as_view(), name="signup"),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 ]
