@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-)m6ji(7_st6&00knay@d$8m7v8y(!7y(a+dvmi6p#6+tiyn21k
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
 
 
 # Application definition
@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Third party
+    "corsheaders",
     "rest_framework",
     # Local apps
     "users",
@@ -52,6 +53,7 @@ AUTH_USER_MODEL = "users.User"
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -125,6 +127,38 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+LOGIN_REDIRECT_URL = "/api/"
+
+
+# core/settings.py
+
+# Session & Cookie settings for local dev with different hosts
+SESSION_COOKIE_SECURE = False  # Allow HTTP in dev
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'  # Allow cross-subdomain cookies
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+
+# CORS already configured
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
+]
+
+# Tell Django to trust localhost for session handling
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+# Allow hostname + numeric IP as same site
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "127.0.0.1:8000",
+    "localhost:8000",
+]
 
 
 REST_FRAMEWORK = {

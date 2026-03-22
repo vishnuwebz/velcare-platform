@@ -1,122 +1,68 @@
-from rest_framework import viewsets, permissions, filters
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
+from rest_framework import viewsets, permissions
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+
+from django.utils import timezone
+
 from .models import Vehicle, Booking
 from .serializers import VehicleSerializer, BookingSerializer
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser
+
+from services.models import Service, VehicleType
 
 
-
-class IsAdminOrOwner(permissions.BasePermission):
-    """
-    - Admin (is_staff) can see everything.
-    - Normal users only see their own objects.
-    """
-
-    def has_object_permission(self, request, view, obj):
-        user = request.user
-        if not user.is_authenticated:
-            return False
-        if user.is_staff:
-            return True
-
-        # Vehicle.owner or Booking.customer
-        owner = getattr(obj, "owner", None) or getattr(obj, "customer", None)
-        return owner == user
-
-
+# =========================
+# VEHICLE VIEWSET
+# =========================
 class VehicleViewSet(viewsets.ModelViewSet):
-    """
-    Customer's vehicles (My Vehicles) + admin overview.
-    """
-
+    queryset = Vehicle.objects.all()
     serializer_class = VehicleSerializer
-    permission_classes = [permissions.IsAuthenticated, IsAdminOrOwner]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ["registration_number", "make", "model"]
-    ordering_fields = ["year", "make", "model"]
-    ordering = ["-year"]
-
-    def get_queryset(self):
-        user = self.request.user
-        qs = Vehicle.objects.select_related("owner", "vehicle_type")
-        if user.is_staff:
-            return qs
-        return qs.filter(owner=user)
-
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+    permission_classes = [permissions.AllowAny]
 
 
+# =========================
+# ADVANCED BOOKING VIEWSET
+# =========================
 class BookingViewSet(viewsets.ModelViewSet):
-    """
-    - Customers: see & manage their own bookings (dashboard, history).
-    - Admin: all bookings with filters (admin dashboard).
-    """
-
+    queryset = Booking.objects.all().order_by("-created_at")
     serializer_class = BookingSerializer
-    permission_classes = [permissions.IsAuthenticated, IsAdminOrOwner]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ["order_id", "customer__username", "vehicle__registration_number"]
-    ordering_fields = ["scheduled_at", "created_at", "amount"]
-    ordering = ["-scheduled_at"]
+    permission_classes = [permissions.AllowAny]
 
-    renderer_classes = [JSONRenderer]
 
-    @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated])
-    def active(self, request):
-        """
-        /api/bookings/active/:
-        - customer: their active (pending/assigned/in_progress) bookings
-        - admin: all active bookings
-        """
-        user = request.user
-        qs = Booking.objects.filter(
-            status__in=[
-                Booking.Status.PENDING,
-                Booking.Status.ASSIGNED,
-                Booking.Status.IN_PROGRESS,
-            ]
+# =========================
+# SIMPLE BOOKING API (FRONTEND USE)
+# =========================
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+def simple_booking(request):
+    data = request.data
+
+    try:
+        # TEMP mapping (later we replace with real selection)
+        service = Service.objects.first()
+        vehicle_type = VehicleType.objects.first()
+
+        vehicle = Vehicle.objects.create(
+            vehicle_type=vehicle_type,
+            make="Unknown",
+            model=data.get("vehicle", "Car"),
+            registration_number=f"TEMP-{timezone.now().timestamp()}",
         )
-        if not user.is_staff:
-            qs = qs.filter(customer=user)
 
-        serializer = self.get_serializer(qs, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=["get"], permission_classes=[IsAdminUser])
-    def pending_assignment(self, request):
-        """
-        /api/bookings/pending_assignment/:
-        admin-only list of bookings that are pending and have no worker.
-        """
-        qs = Booking.objects.filter(
-            status=Booking.Status.PENDING,
-            worker__isnull=True,
+        booking = Booking.objects.create(
+            service=service,
+            vehicle=vehicle,
+            scheduled_at=timezone.now(),
+            address=data.get("address"),
+            zone="Chennai",
+            amount=data.get("price", 0),
         )
-        serializer = self.get_serializer(qs, many=True)
-        return Response(serializer.data)
 
-    def get_queryset(self):
-        user = self.request.user
-        qs = (
-            Booking.objects.select_related(
-                "customer",
-                "service",
-                "vehicle",
-                "worker__user",
-            )
-            .all()
-        )
-        if user.is_staff:
-            return qs
-        return qs.filter(customer=user)
+        return Response({
+            "message": "Booking successful",
+            "order_id": booking.order_id
+        })
 
-    def perform_create(self, serializer):
-        # In admin, you could allow explicit customer; for now, bind to request.user
-        user = self.request.user
-        if not user.is_authenticated:
-            raise PermissionDenied("Authentication required.")
-        serializer.save(customer=user)
+    except Exception as e:
+        return Response({
+            "error": str(e)
+        }, status=400)
